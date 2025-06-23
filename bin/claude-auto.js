@@ -513,13 +513,26 @@ async function monitorCommand(args) {
     default:
       console.log(chalk.yellow('Monitor commands:'));
       console.log('  monitor start     Start real-time terminal monitoring');
-      console.log('  monitor stop      Stop monitoring');
+  console.log('  monitor start --full-autonomous  Start FULL autonomous monitoring (recommended)');      console.log('  monitor stop      Stop monitoring');
       console.log('  monitor status    Check monitoring status');
   }
 }
 
 async function startMonitoringCommand(options) {
-  console.log(chalk.blue('🤖 Starting autonomous terminal monitoring...'));
+  const isFullAutonomous = options.includes('--full-autonomous');
+  
+  if (isFullAutonomous) {
+    console.log(chalk.blue('🚀 Starting FULL AUTONOMOUS monitoring...'));
+    console.log(chalk.yellow('This enables maximum Claude awareness:'));
+    console.log(chalk.gray('  ✅ Real-time process monitoring'));
+    console.log(chalk.gray('  ✅ All log file watching'));
+    console.log(chalk.gray('  ✅ Network health monitoring'));
+    console.log(chalk.gray('  ✅ Error detection and analysis'));
+    console.log(chalk.gray('  ✅ Auto-restart capabilities'));
+    console.log('');
+  } else {
+    console.log(chalk.blue('🤖 Starting autonomous terminal monitoring...'));
+  }
   
   try {
     // Setup event listeners for real-time feedback
@@ -555,7 +568,13 @@ async function startMonitoringCommand(options) {
       console.log(chalk.blue(`🔄 STATE CHANGED: ${event.changes.length} changes detected`));
     });
     
-    const monitoringOptions = {
+    const monitoringOptions = isFullAutonomous ? {
+      interval: 3000,  // More frequent checks for full autonomous
+      logFiles: ['dev-server', 'build', 'test', 'convex', 'development'],
+      watchProcesses: true,
+      watchNetwork: true,
+      autoRestart: true
+    } : {
       interval: 5000,
       logFiles: ['dev-server', 'build', 'test', 'convex'],
       watchProcesses: true,
@@ -822,7 +841,7 @@ async function dashboardCommand(args) {
             console.log(`${chalk.cyan(name)}: ${status} ${chalk.gray(`(${endpoint.url})`)}`); 
           } catch {
             const name = endpoint.name.padEnd(15);
-            console.log(`${chalk.cyan(name)}: ${chalk.red('❌ Offline')} ${chalk.gray(`(${endpoint.url})}`);
+            console.log(`${chalk.cyan(name)}: ${chalk.red('❌ Offline')} ${chalk.gray(`(${endpoint.url})`)}`);
           }
         }
         
@@ -954,11 +973,13 @@ function showHelp() {
   console.log('');
   console.log(chalk.yellow('Terminal Monitoring:'));
   console.log('  monitor start     Start real-time terminal monitoring');
+  console.log('  monitor start --full-autonomous  Start FULL autonomous monitoring (recommended)');
   console.log('  monitor stop      Stop monitoring');
   console.log('  monitor status    Check monitoring status');
   console.log('  watch [source]    Watch specific log file (dev-server, build, test)');
   console.log('  analyze [source]  Analyze log file for errors/warnings');
-  console.log('  activity [time]   Show recent activity (default: 1 hour ago)');\n  console.log('  dashboard         Real-time development dashboard');
+  console.log('  activity [time]   Show recent activity (default: 1 hour ago)');
+  console.log('  dashboard         Real-time development dashboard');
   console.log('');
   console.log(chalk.yellow('Convex Integration:'));
   console.log('  convex status     Check Convex deployment status');

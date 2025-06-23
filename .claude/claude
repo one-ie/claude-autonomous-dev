@@ -1,0 +1,33 @@
+#!/bin/bash
+node -e "
+const ClaudeAuto = require('/Users/toc/Server/one-network/claude-autonomous-dev/lib/index.js');
+const claude = new ClaudeAuto();
+
+async function run() {
+  const cmd = process.argv[2];
+  
+  switch(cmd) {
+    case 'status':
+      const status = await claude.status();
+      console.log('🤖 CLAUDE AUTO STATUS');
+      console.log('====================');
+      Object.entries(status).forEach(([k,v]) => console.log(`${k}: ${v}`));
+      break;
+    case 'scan':
+      console.log(JSON.stringify(await claude.scan(), null, 2));
+      break;
+    case 'ready':
+      const env = await claude.scan();
+      console.log(env.readiness.level === 'ready' ? '✅ READY' : `⚠️ ${env.readiness.level.toUpperCase()}: ${env.readiness.issues.join(', ')}`);
+      break;
+    case 'fix':
+      const fixes = await claude.autoFix();
+      console.log(fixes.length ? fixes.join(', ') : 'No fixes needed');
+      break;
+    default:
+      console.log('Usage: ./claude [status|scan|ready|fix]');
+  }
+}
+
+run().catch(console.error);
+" $@
