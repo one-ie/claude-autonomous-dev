@@ -4,9 +4,9 @@
 
 [![npm version](https://badge.fury.io/js/claude-autonomous-dev.svg)](https://www.npmjs.com/package/claude-autonomous-dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js CI](https://github.com/one-ie/claude-autonomous-dev/workflows/Node.js%20CI/badge.svg)](https://github.com/one-ie/claude-autonomous-dev/actions)
 
-Transform Claude from a **reactive assistant** to a **proactive development partner** with real-time environmental intelligence. **Now with full terminal monitoring, Astro, Vite, Convex, and Turbo monorepo support!**
+
+Transform Claude Code with real-time environmental intelligence. **Now with full terminal monitoring, Astro, Vite, Convex, and Turbo monorepo support!**
 
 ## 🤖 **For Claude Code Users**
 
@@ -299,7 +299,6 @@ Before: *"What's the current development state?"*
 
 ### **The Complete Autonomous Vision Realized**
 
-This implementation fulfills the original vision from `docs/auto.md`:
 - ✅ **Real-time terminal monitoring** with log capture
 - ✅ **Continuous process health checking** 
 - ✅ **Intelligent log analysis** and event detection
