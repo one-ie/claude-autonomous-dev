@@ -8,6 +8,56 @@
 
 Transform Claude from a **reactive assistant** to a **proactive development partner** with real-time environmental intelligence. **Now with full Astro, Vite, Convex, and Turbo monorepo support!**
 
+## 🤖 **For Claude Code Users**
+
+**Transform Claude from reactive to proactive development partner:**
+
+```bash
+# 1. Install globally
+npm install -g claude-autonomous-dev
+
+# 2. Initialize in your project (run this once)
+claude-auto init
+
+# 3. Now Claude can intelligently check your environment
+claude-auto status
+```
+
+### **How It Works with Claude Code**
+
+**Claude Code can run terminal commands and see their output.** This package makes that **100x more powerful**:
+
+**Before (Multiple blind commands):**
+```
+Claude: "Let me check your environment..."
+→ Runs: ps aux | grep dev
+→ Runs: curl localhost:3000  
+→ Runs: npx tsc --noEmit
+→ Runs: git status
+→ Analyzes 4 separate outputs, may miss things
+```
+
+**After (Single intelligent command):**
+```
+Claude: "Let me check your environment..."
+→ Runs: claude-auto status
+→ Gets comprehensive structured data instantly
+→ "I can see Vite on 5173, TypeScript clean, 3 files changed, ready to proceed"
+```
+
+### **What Claude Gains**
+- ✅ **Instant Environment Intel**: Complete development state in one command
+- ✅ **Proactive Problem Detection**: "I see TypeScript errors, fixing those first"
+- ✅ **Framework Awareness**: "Detected Astro + Convex setup, adjusting workflow"
+- ✅ **Process Monitoring**: "Dev server running on PID 12345, safe to proceed"
+- ✅ **Auto-Fix Capabilities**: Can run `claude-auto fix` to resolve common issues
+- ✅ **Real-Time Logs**: Stream Convex logs with `claude-auto logs convex --tail`
+
+### **In Practice**
+Claude doesn't "watch" your terminal continuously, but when it **does** check your environment during development sessions, it gets **vastly more intelligent and actionable information** from fewer commands.
+
+**Result**: Claude makes **informed decisions** instead of guessing, leading to faster and more accurate development assistance.
+
 ## 🚀 The Revolution
 
 ### Before (Blind Development)
