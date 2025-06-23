@@ -1,0 +1,54 @@
+{
+  "name": "claude-autonomous-dev",
+  "version": "1.2.0",
+  "description": "Lightweight autonomous development framework that gives Claude real-time environmental awareness",
+  "main": "lib/index.js",
+  "bin": {
+    "claude-auto": "bin/claude-auto.js",
+    "cauto": "bin/claude-auto.js"
+  },
+  "scripts": {
+    "test": "node test/index.js",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "claude",
+    "autonomous",
+    "development",
+    "ai-assistant",
+    "devops",
+    "monitoring",
+    "real-time",
+    "environment",
+    "typescript",
+    "lint",
+    "build"
+  ],
+  "author": {
+    "name": "Anthony ",
+    "email": "tony@one.ie",
+    "url": "https://one.ie"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/one-ie/claude-autonomous-dev.git"
+  },
+  "bugs": {
+    "url": "https://github.com/one-ie/claude-autonomous-dev/issues"
+  },
+  "homepage": "https://github.com/one-ie/claude-autonomous-dev#readme"
+}
