@@ -1,10 +1,10 @@
-# @claude/autonomous-dev
+# claude-autonomous-dev
 
 > ⚡ Lightweight autonomous development framework that gives Claude real-time environmental awareness
 
-[![npm version](https://badge.fury.io/js/%40claude%2Fautonomous-dev.svg)](https://www.npmjs.com/package/@claude/autonomous-dev)
+[![npm version](https://badge.fury.io/js/claude-autonomous-dev.svg)](https://www.npmjs.com/package/claude-autonomous-dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js CI](https://github.com/one-network/claude-autonomous-dev/workflows/Node.js%20CI/badge.svg)](https://github.com/one-network/claude-autonomous-dev/actions)
+[![Node.js CI](https://github.com/one-ie/claude-autonomous-dev/workflows/Node.js%20CI/badge.svg)](https://github.com/one-ie/claude-autonomous-dev/actions)
 
 Transform Claude from a **reactive assistant** to a **proactive development partner** with real-time environmental intelligence. **Now with full Astro, Vite, Convex, and Turbo monorepo support!**
 
@@ -23,8 +23,8 @@ Transform Claude from a **reactive assistant** to a **proactive development part
 ## ⚡ Lightning-Fast Setup
 
 ```bash
-# Install globally
-npm install -g @claude/autonomous-dev
+# Install globally from npm
+npm install -g claude-autonomous-dev
 
 # Initialize in any project  
 claude-auto init
@@ -32,6 +32,8 @@ claude-auto init
 # Check what Claude sees
 claude-auto status
 ```
+
+> 🎉 **Now available on npm!** Install globally and use in any project instantly.
 
 **Output:**
 ```
