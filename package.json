@@ -1,6 +1,6 @@
 {
   "name": "claude-autonomous-dev",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Lightweight autonomous development framework that gives Claude real-time environmental awareness",
   "main": "lib/index.js",
   "bin": {

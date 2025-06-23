@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js CI](https://github.com/one-ie/claude-autonomous-dev/workflows/Node.js%20CI/badge.svg)](https://github.com/one-ie/claude-autonomous-dev/actions)
 
-Transform Claude from a **reactive assistant** to a **proactive development partner** with real-time environmental intelligence. **Now with full Astro, Vite, Convex, and Turbo monorepo support!**
+Transform Claude from a **reactive assistant** to a **proactive development partner** with real-time environmental intelligence. **Now with full terminal monitoring, Astro, Vite, Convex, and Turbo monorepo support!**
 
 ## 🤖 **For Claude Code Users**
 
@@ -47,14 +47,16 @@ Claude: "Let me check your environment..."
 
 ### **What Claude Gains**
 - ✅ **Instant Environment Intel**: Complete development state in one command
+- ✅ **Real-Time Terminal Monitoring**: Watch dev servers, builds, tests continuously
 - ✅ **Proactive Problem Detection**: "I see TypeScript errors, fixing those first"
 - ✅ **Framework Awareness**: "Detected Astro + Convex setup, adjusting workflow"
 - ✅ **Process Monitoring**: "Dev server running on PID 12345, safe to proceed"
 - ✅ **Auto-Fix Capabilities**: Can run `claude-auto fix` to resolve common issues
-- ✅ **Real-Time Logs**: Stream Convex logs with `claude-auto logs convex --tail`
+- ✅ **Event-Driven Responses**: React to crashes, errors, warnings in real-time
+- ✅ **Log Analysis**: Stream and analyze logs from all development processes
 
 ### **In Practice**
-Claude doesn't "watch" your terminal continuously, but when it **does** check your environment during development sessions, it gets **vastly more intelligent and actionable information** from fewer commands.
+**NEW**: Claude **CAN** now watch your terminal continuously with `claude-auto monitor start`! This provides real-time awareness of crashes, errors, and state changes. Even without continuous monitoring, Claude gets **vastly more intelligent and actionable information** from fewer commands.
 
 **Result**: Claude makes **informed decisions** instead of guessing, leading to faster and more accurate development assistance.
 
@@ -64,11 +66,15 @@ Claude doesn't "watch" your terminal continuously, but when it **does** check yo
 - ❌ "Can you check if the server is running?"
 - ❌ "Are there any TypeScript errors?"
 - ❌ "What's the current status?"
+- ❌ "Please tell me when errors occur"
 
-### After (Autonomous Intelligence)
+### After (Autonomous Intelligence) 
 - ✅ "I can see your dev server running on PID 12345"
 - ✅ "TypeScript is clean - safe to proceed"
 - ✅ "Build successful (1.2M, 850ms) - ready to deploy"
+- ✅ **"🔴 NETWORK DOWN: vite:5173 - restarting automatically"**
+- ✅ **"❌ [dev-server] ERROR: Type error detected - fixing now"**
+- ✅ **"🚀 PROCESS STARTED: convex (PID: 12346)"**
 
 ## ⚡ Lightning-Fast Setup
 
@@ -115,6 +121,15 @@ claude-auto can-start   # Safe to start servers?
 claude-auto build       # Build monitoring with metrics
 claude-auto lint [fix]  # Lint checking with auto-fix
 claude-auto fix         # Auto-fix common issues
+```
+
+### 👁️ Terminal Monitoring (NEW!)
+```bash
+claude-auto monitor start      # Start real-time terminal monitoring  
+claude-auto monitor stop       # Stop monitoring
+claude-auto watch [source]     # Watch specific log (dev-server, build, test)
+claude-auto analyze [source]   # Analyze logs for errors/warnings
+claude-auto activity [time]    # Show recent activity (default: 1 hour ago)
 ```
 
 ### 🏗️ Monorepo & Framework Support
@@ -250,3 +265,45 @@ MIT License - see [LICENSE](LICENSE) for details.
 This framework represents a paradigm shift from **reactive AI assistance** to **proactive AI partnership**. Instead of constantly asking "What's the status?", Claude now **knows** your environment and makes intelligent decisions based on real data.
 
 **The future of software development is autonomous, intelligent, and aware. Start building it today.** 🤖✨
+
+---
+
+## 🎉 **Version 1.3.0: Revolutionary Terminal Monitoring**
+
+### **NEW: Real-Time Terminal Awareness**
+
+Claude can now **continuously watch your terminal** and react to events in real-time:
+
+```bash
+# Start continuous monitoring
+claude-auto monitor start
+
+# Claude now sees everything:
+🚀 PROCESS STARTED: vite (PID: 12345)
+✅ [dev-server] SUCCESS: ready in 1245ms
+❌ [dev-server] ERROR: Type 'undefined' is not assignable to type 'string'
+🔴 NETWORK DOWN: vite:5173
+💥 PROCESS CRASHED: convex (PID: 12346)
+```
+
+### **What This Means for Claude Code**
+
+Before: *"Can you check if the server crashed?"*
+**Now**: *Claude automatically knows and can restart it*
+
+Before: *"Are there any new errors?"*
+**Now**: *Claude sees errors as they happen and can fix them immediately*
+
+Before: *"What's the current development state?"*
+**Now**: *Claude has continuous real-time awareness*
+
+### **The Complete Autonomous Vision Realized**
+
+This implementation fulfills the original vision from `docs/auto.md`:
+- ✅ **Real-time terminal monitoring** with log capture
+- ✅ **Continuous process health checking** 
+- ✅ **Intelligent log analysis** and event detection
+- ✅ **Development dashboard** with live updates
+- ✅ **Event-driven autonomous responses**
+
+**Claude is no longer blind to your development environment!** 🚀

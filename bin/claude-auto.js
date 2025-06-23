@@ -9,6 +9,11 @@ const ClaudeAuto = require('../lib/index.js');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
+const { promisify } = require('util');
+const { exec } = require('child_process');
+
+const execAsync = promisify(exec);
 
 // Performance optimization: only load what we need
 const claude = new ClaudeAuto();
@@ -59,6 +64,21 @@ async function main() {
         break;
       case 'frameworks':
         await frameworksCommand();
+        break;
+      case 'monitor':
+        await monitorCommand(args);
+        break;
+      case 'watch':
+        await watchCommand(args);
+        break;
+      case 'analyze':
+        await analyzeCommand(args);
+        break;
+      case 'activity':
+        await activityCommand(args);
+        break;
+      case 'dashboard':
+        await dashboardCommand(args);
         break;
       case 'help':
       case '--help':
@@ -475,6 +495,377 @@ async function workspaceStatus(monorepo) {
 }
 
 /**
+ * Terminal monitoring commands
+ */
+async function monitorCommand(args) {
+  const [action = 'start', ...options] = args;
+  
+  switch (action) {
+    case 'start':
+      await startMonitoringCommand(options);
+      break;
+    case 'stop':
+      await stopMonitoringCommand();
+      break;
+    case 'status':
+      await monitoringStatusCommand();
+      break;
+    default:
+      console.log(chalk.yellow('Monitor commands:'));
+      console.log('  monitor start     Start real-time terminal monitoring');
+      console.log('  monitor stop      Stop monitoring');
+      console.log('  monitor status    Check monitoring status');
+  }
+}
+
+async function startMonitoringCommand(options) {
+  console.log(chalk.blue('🤖 Starting autonomous terminal monitoring...'));
+  
+  try {
+    // Setup event listeners for real-time feedback
+    claude.on('terminal:error', (event) => {
+      console.log(chalk.red(`❌ [${event.source}] ERROR: ${event.message}`));
+    });
+    
+    claude.on('terminal:warning', (event) => {
+      console.log(chalk.yellow(`⚠️ [${event.source}] WARNING: ${event.message}`));
+    });
+    
+    claude.on('terminal:success', (event) => {
+      console.log(chalk.green(`✅ [${event.source}] SUCCESS: ${event.message}`));
+    });
+    
+    claude.on('process:crashed', (event) => {
+      console.log(chalk.red(`💥 PROCESS CRASHED: ${event.process} (PID: ${event.pid})`));
+    });
+    
+    claude.on('process:started', (event) => {
+      console.log(chalk.green(`🚀 PROCESS STARTED: ${event.process} (PID: ${event.pid})`));
+    });
+    
+    claude.on('network:down', (event) => {
+      console.log(chalk.red(`🔴 NETWORK DOWN: ${event.endpoint}:${event.port}`));
+    });
+    
+    claude.on('network:up', (event) => {
+      console.log(chalk.green(`🟢 NETWORK UP: ${event.endpoint}:${event.port}`));
+    });
+    
+    claude.on('state:changed', (event) => {
+      console.log(chalk.blue(`🔄 STATE CHANGED: ${event.changes.length} changes detected`));
+    });
+    
+    const monitoringOptions = {
+      interval: 5000,
+      logFiles: ['dev-server', 'build', 'test', 'convex'],
+      watchProcesses: true,
+      watchNetwork: true
+    };
+    
+    await claude.startMonitoring(monitoringOptions);
+    
+    console.log(chalk.green('✅ Terminal monitoring active'));
+    console.log(chalk.gray('Press Ctrl+C to stop monitoring'));
+    
+    // Keep process alive
+    process.on('SIGINT', async () => {
+      console.log(chalk.blue('\n🛑 Stopping monitoring...'));
+      await claude.stopMonitoring();
+      process.exit(0);
+    });
+    
+    // Keep the process running
+    setInterval(() => {}, 1000);
+    
+  } catch (error) {
+    console.error(chalk.red('❌ Failed to start monitoring:'), error.message);
+  }
+}
+
+async function stopMonitoringCommand() {
+  try {
+    await claude.stopMonitoring();
+    console.log(chalk.green('✅ Monitoring stopped'));
+  } catch (error) {
+    console.error(chalk.red('❌ Failed to stop monitoring:'), error.message);
+  }
+}
+
+async function monitoringStatusCommand() {
+  const status = claude.getMonitoringStatus();
+  
+  console.log(chalk.blue('📊 Monitoring Status'));
+  console.log(chalk.blue('=================='));
+  console.log(`Active: ${status.active ? chalk.green('Yes') : chalk.red('No')}`);
+  console.log(`Log Watchers: ${chalk.yellow(status.logWatchers.join(', ') || 'None')}`);
+  console.log(`Process Monitor: ${status.processMonitor ? chalk.green('Running') : chalk.red('Stopped')}`);
+  console.log(`Event Listeners: ${status.events ? chalk.green('Active') : chalk.gray('None')}`);
+}
+
+/**
+ * Watch command for log tailing
+ */
+async function watchCommand(args) {
+  const [source = 'dev-server'] = args;
+  const logPath = path.join(claude.claudePath, 'logs', `${source}.log`);
+  
+  if (!fs.existsSync(logPath)) {
+    console.log(chalk.yellow(`📝 Log file not found: ${logPath}`));
+    console.log(chalk.gray('Available logs:'));
+    const logsDir = path.join(claude.claudePath, 'logs');
+    if (fs.existsSync(logsDir)) {
+      const logFiles = fs.readdirSync(logsDir).filter(f => f.endsWith('.log'));
+      logFiles.forEach(file => console.log(chalk.gray(`  • ${file.replace('.log', '')}`)));
+    }
+    return;
+  }
+  
+  console.log(chalk.blue(`👁️ Watching ${source} logs (Ctrl+C to stop)...`));
+  console.log(chalk.gray('====================================='));
+  
+  const tailProcess = spawn('tail', ['-f', logPath], {
+    stdio: ['pipe', 'pipe', 'pipe']
+  });
+  
+  tailProcess.stdout.on('data', (data) => {
+    const lines = data.toString().split('\n').filter(line => line.trim());
+    lines.forEach(line => {
+      const time = new Date().toTimeString().split(' ')[0];
+      console.log(`${chalk.gray(time)} ${line}`);
+    });
+  });
+  
+  tailProcess.stderr.on('data', (data) => {
+    console.error(chalk.red('Error:'), data.toString());
+  });
+  
+  process.on('SIGINT', () => {
+    tailProcess.kill();
+    console.log(chalk.blue('\n🛑 Stopped watching logs'));
+    process.exit(0);
+  });
+}
+
+/**
+ * Analyze logs command
+ */
+async function analyzeCommand(args) {
+  const [source = 'dev-server'] = args;
+  const logPath = path.join(claude.claudePath, 'logs', `${source}.log`);
+  
+  if (!fs.existsSync(logPath)) {
+    console.log(chalk.red(`❌ Log file not found: ${logPath}`));
+    return;
+  }
+  
+  console.log(chalk.blue(`🔍 Analyzing ${source} logs...`));
+  
+  try {
+    const analyzeScript = path.join(claude.claudePath, 'scripts', 'analyze-logs.sh');
+    const { stdout } = await execAsync(`${analyzeScript} ${logPath}`);
+    console.log(stdout);
+  } catch (error) {
+    console.error(chalk.red('❌ Analysis failed:'), error.message);
+  }
+}
+
+/**
+ * Activity command for recent events
+ */
+async function activityCommand(args) {
+  const [timeframe = '1 hour ago'] = args;
+  
+  console.log(chalk.blue(`📊 Recent Activity (${timeframe}):`));
+  console.log(chalk.blue('================================'));
+  
+  const logsDir = path.join(claude.claudePath, 'logs');
+  
+  if (!fs.existsSync(logsDir)) {
+    console.log(chalk.gray('No activity logs found'));
+    return;
+  }
+  
+  try {
+    // Find recent log entries across all log files
+    const { stdout } = await execAsync(`find ${logsDir} -name "*.log" -newermt "${timeframe}" -exec grep -H "error\|ERROR\|warn\|WARN\|success\|SUCCESS" {} \; | tail -20`);
+    
+    if (stdout.trim()) {
+      const lines = stdout.trim().split('\n');
+      lines.forEach(line => {
+        const [filePath, ...messageParts] = line.split(':');
+        const fileName = path.basename(filePath, '.log');
+        const message = messageParts.join(':').trim();
+        
+        if (message.toLowerCase().includes('error')) {
+          console.log(`${chalk.red('❌')} ${chalk.cyan(fileName)}: ${message}`);
+        } else if (message.toLowerCase().includes('warn')) {
+          console.log(`${chalk.yellow('⚠️')} ${chalk.cyan(fileName)}: ${message}`);
+        } else {
+          console.log(`${chalk.green('✅')} ${chalk.cyan(fileName)}: ${message}`);
+        }
+      });
+    } else {
+      console.log(chalk.gray('No recent activity found'));
+    }
+    
+  } catch (error) {
+    console.error(chalk.red('❌ Failed to analyze activity:'), error.message);
+  }
+}
+
+/**
+ * Terminal dashboard command
+ */
+async function dashboardCommand(args) {
+  const [action = 'start'] = args;
+  
+  if (action === 'start') {
+    console.log(chalk.blue('📊 Starting development dashboard...'));
+    console.log(chalk.gray('Press Ctrl+C to stop\n'));
+    
+    let iteration = 0;
+    
+    const updateDashboard = async () => {
+      try {
+        // Clear screen
+        process.stdout.write('\x1b[2J\x1b[0f');
+        
+        iteration++;
+        const timestamp = new Date().toLocaleString();
+        
+        console.log(chalk.blue.bold('🤖 CLAUDE AUTONOMOUS DEVELOPMENT DASHBOARD'));
+        console.log(chalk.blue('='.repeat(55)));
+        console.log(chalk.gray(`Last updated: ${timestamp} (${iteration})`));
+        console.log('');
+        
+        // Get current status
+        const status = await claude.status();
+        
+        // Display status with colors
+        console.log(chalk.blue.bold('📊 SYSTEM STATUS'));
+        console.log(chalk.blue('-'.repeat(25)));
+        
+        Object.entries(status).forEach(([key, value]) => {
+          const label = key.padEnd(12);
+          let coloredValue = value;
+          
+          if (value.includes('Clean') || value.includes('Success') || value.includes('Healthy') || value.includes('Running')) {
+            coloredValue = chalk.green(value);
+          } else if (value.includes('error') || value.includes('Failed') || value.includes('Offline') || value.includes('Stopped')) {
+            coloredValue = chalk.red(value);
+          } else if (value.includes('warning') || value.includes('Partial')) {
+            coloredValue = chalk.yellow(value);
+          } else {
+            coloredValue = chalk.gray(value);
+          }
+          
+          console.log(`${chalk.cyan(label)}: ${coloredValue}`);
+        });
+        
+        console.log('');
+        
+        // Recent activity
+        console.log(chalk.blue.bold('📝 RECENT ACTIVITY (5 min)'));
+        console.log(chalk.blue('-'.repeat(35)));
+        
+        try {
+          const logsDir = path.join(claude.claudePath, 'logs');
+          if (fs.existsSync(logsDir)) {
+            const { stdout } = await execAsync(`find ${logsDir} -name "*.log" -newermt "5 minutes ago" -exec grep -H "error\\|ERROR\\|warn\\|WARN\\|success\\|SUCCESS\\|ready\\|compiled" {} \\; 2>/dev/null | tail -8`);
+            
+            if (stdout.trim()) {
+              const lines = stdout.trim().split('\n');
+              lines.forEach(line => {
+                const [filePath, ...messageParts] = line.split(':');
+                const fileName = path.basename(filePath, '.log');
+                const message = messageParts.join(':').trim().substring(0, 60);
+                
+                if (message.toLowerCase().includes('error')) {
+                  console.log(`${chalk.red('❌')} ${chalk.cyan(fileName.padEnd(10))}: ${message}`);
+                } else if (message.toLowerCase().includes('warn')) {
+                  console.log(`${chalk.yellow('⚠️')} ${chalk.cyan(fileName.padEnd(10))}: ${message}`);
+                } else {
+                  console.log(`${chalk.green('✅')} ${chalk.cyan(fileName.padEnd(10))}: ${message}`);
+                }
+              });
+            } else {
+              console.log(chalk.gray('No recent activity'));
+            }
+          } else {
+            console.log(chalk.gray('No logs directory found'));
+          }
+        } catch (error) {
+          console.log(chalk.gray('Unable to read recent activity'));
+        }
+        
+        console.log('');
+        
+        // Network endpoints
+        console.log(chalk.blue.bold('🌐 NETWORK ENDPOINTS'));
+        console.log(chalk.blue('-'.repeat(25)));
+        
+        const endpoints = [
+          { name: 'Frontend (Vite)', port: 5173, url: 'http://localhost:5173' },
+          { name: 'Astro Dev', port: 4321, url: 'http://localhost:4321' },
+          { name: 'Next.js', port: 3000, url: 'http://localhost:3000' },
+          { name: 'Convex Local', port: 3210, url: 'http://localhost:3210' }
+        ];
+        
+        for (const endpoint of endpoints) {
+          try {
+            const { stdout } = await execAsync(`curl -s -o /dev/null -w "%{http_code}" ${endpoint.url} --max-time 1`);
+            const statusCode = stdout.trim();
+            const isHealthy = ['200', '404'].includes(statusCode);
+            
+            const status = isHealthy ? chalk.green('✅ Online') : chalk.red('❌ Offline');
+            const name = endpoint.name.padEnd(15);
+            console.log(`${chalk.cyan(name)}: ${status} ${chalk.gray(`(${endpoint.url})`)}`); 
+          } catch {
+            const name = endpoint.name.padEnd(15);
+            console.log(`${chalk.cyan(name)}: ${chalk.red('❌ Offline')} ${chalk.gray(`(${endpoint.url})}`);
+          }
+        }
+        
+        console.log('');
+        
+        // Monitoring status if available
+        const monitoringStatus = claude.getMonitoringStatus();
+        if (monitoringStatus.active) {
+          console.log(chalk.blue.bold('👀 MONITORING STATUS'));
+          console.log(chalk.blue('-'.repeat(25)));
+          console.log(`${chalk.green('✅')} Real-time monitoring active`);
+          console.log(`${chalk.cyan('Watchers')}: ${monitoringStatus.logWatchers.join(', ') || 'None'}`);
+          console.log('');
+        }
+        
+        // Instructions
+        console.log(chalk.gray('Press Ctrl+C to stop dashboard'));
+        
+      } catch (error) {
+        console.error(chalk.red('Dashboard error:'), error.message);
+      }
+    };
+    
+    // Initial update
+    await updateDashboard();
+    
+    // Update every 5 seconds
+    const dashboardInterval = setInterval(updateDashboard, 5000);
+    
+    // Handle Ctrl+C
+    process.on('SIGINT', () => {
+      clearInterval(dashboardInterval);
+      console.log(chalk.blue('\n🛑 Dashboard stopped'));
+      process.exit(0);
+    });
+    
+  } else {
+    console.log(chalk.yellow('Dashboard commands:'));
+    console.log('  dashboard start   Start real-time development dashboard');
+  }
+}
+
+/**
  * Frameworks command
  */
 async function frameworksCommand() {
@@ -560,6 +951,14 @@ function showHelp() {
   console.log('  build             Check build status');
   console.log('  lint [fix]        Check/fix linting');
   console.log('  fix               Auto-fix common issues');
+  console.log('');
+  console.log(chalk.yellow('Terminal Monitoring:'));
+  console.log('  monitor start     Start real-time terminal monitoring');
+  console.log('  monitor stop      Stop monitoring');
+  console.log('  monitor status    Check monitoring status');
+  console.log('  watch [source]    Watch specific log file (dev-server, build, test)');
+  console.log('  analyze [source]  Analyze log file for errors/warnings');
+  console.log('  activity [time]   Show recent activity (default: 1 hour ago)');\n  console.log('  dashboard         Real-time development dashboard');
   console.log('');
   console.log(chalk.yellow('Convex Integration:'));
   console.log('  convex status     Check Convex deployment status');
